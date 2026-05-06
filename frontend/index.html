@@ -1,0 +1,1893 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NEXO Bolsa · Terminal Financiero INACAP</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ========== ESTILOS (sin cambios, igual que antes) ========== */
+:root{
+  --bg:#05090e;--surf:#0a1120;--surf2:#0d1628;
+  --bdr:#0f2238;--bdr2:#1a3a5c;
+  --cyan:#00d4ff;--cyanD:rgba(0,212,255,.12);
+  --green:#00ff88;--greenD:rgba(0,255,136,.12);
+  --red:#ff3c5a;--redD:rgba(255,60,90,.12);
+  --amber:#ffb300;--amberD:rgba(255,179,0,.12);
+  --txt:#c4daf0;--sub:#7090b0;--mute:#2e5070;
+  --gC:0 0 22px rgba(0,212,255,.28);
+  --gG:0 0 22px rgba(0,255,136,.28);
+  --mono:'Share Tech Mono',monospace;
+  --ui:'Rajdhani',sans-serif;
+  --hd:'Orbitron',sans-serif;
+  --r:6px;--th:52px;--nh:44px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--ui);background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.008) 2px,rgba(0,212,255,.008) 4px)}
+.hidden{display:none!important}
+.cc{color:var(--cyan)}.cg{color:var(--green)}.cr{color:var(--red)}.ca{color:var(--amber)}.cs{color:var(--sub)}
+.mono{font-family:var(--mono)}
+
+/* TOAST */
+#toasts{position:fixed;bottom:18px;right:18px;z-index:99000;display:flex;flex-direction:column;gap:7px;max-width:calc(100vw - 36px)}
+.toast{background:var(--surf2);border:1px solid var(--bdr2);border-left:3px solid var(--cyan);
+  padding:10px 15px;border-radius:var(--r);font-size:.81rem;min-width:220px;max-width:320px;
+  animation:tIn .22s ease;display:flex;align-items:flex-start;gap:7px}
+.toast.ok{border-left-color:var(--green)}.toast.err{border-left-color:var(--red)}.toast.wrn{border-left-color:var(--amber)}
+@keyframes tIn{from{transform:translateX(50px);opacity:0}}
+@keyframes tOut{to{transform:translateX(50px);opacity:0}}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .2s ease}
+.modal{background:var(--surf);border:1px solid var(--bdr2);border-top:2px solid var(--cyan);
+  border-radius:var(--r);padding:clamp(18px,4vw,30px);width:min(450px,100%);
+  box-shadow:var(--gC),0 28px 56px rgba(0,0,0,.55)}
+.modal-ttl{font-family:var(--hd);font-size:.82rem;letter-spacing:2px;color:var(--cyan);margin-bottom:18px}
+@keyframes fadeIn{from{opacity:0}}
+
+/* FORMS */
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--sub);margin-bottom:5px}
+.fi{width:100%;background:rgba(0,0,0,.42);border:1px solid var(--bdr2);color:var(--txt);
+  padding:8px 12px;border-radius:var(--r);font-family:var(--mono);font-size:.83rem;
+  outline:none;transition:border-color .18s,box-shadow .18s;-webkit-appearance:none}
+.fi:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.09)}
+.fi::placeholder{color:var(--mute)}
+select.fi option{background:var(--surf)}
+.rpills{display:flex;gap:7px;flex-wrap:wrap}
+.rpill{padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;
+  border:1px solid var(--bdr2);color:var(--sub);transition:all .16s;user-select:none}
+.rp-a{border-color:var(--cyan);color:var(--cyan);background:var(--cyanD)}
+.rp-u{border-color:var(--green);color:var(--green);background:var(--greenD)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 17px;border-radius:var(--r);font-family:var(--ui);font-weight:600;
+  font-size:.82rem;letter-spacing:.3px;border:1px solid;cursor:pointer;
+  transition:all .16s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.bc{background:var(--cyanD);border-color:var(--cyan);color:var(--cyan)}
+.bg{background:var(--greenD);border-color:var(--green);color:var(--green)}
+.br{background:var(--redD);border-color:var(--red);color:var(--red)}
+.ba{background:var(--amberD);border-color:var(--amber);color:var(--amber)}
+.bx{background:transparent;border-color:var(--bdr2);color:var(--sub)}
+.bc:not(:disabled):hover{background:rgba(0,212,255,.22);box-shadow:var(--gC)}
+.bg:not(:disabled):hover{background:rgba(0,255,136,.22);box-shadow:var(--gG)}
+.br:not(:disabled):hover{background:rgba(255,60,90,.22)}
+.ba:not(:disabled):hover{background:rgba(255,179,0,.22)}
+.bx:not(:disabled):hover{border-color:var(--sub);color:var(--txt)}
+.btn-sm{padding:5px 12px;font-size:.76rem}
+.btn-xs{padding:3px 9px;font-size:.71rem}
+.btn-fw{width:100%}
+
+/* LOGIN */
+#lp{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(0,212,255,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 40% at 100% 105%,rgba(0,255,136,.05) 0%,transparent 60%),var(--bg)}
+.lcard{width:min(410px,100%);background:var(--surf);border:1px solid var(--bdr2);
+  border-top:2px solid var(--cyan);border-radius:10px;
+  padding:clamp(24px,5vw,42px) clamp(20px,5vw,34px);
+  box-shadow:var(--gC),0 36px 72px rgba(0,0,0,.5);animation:cIn .5s cubic-bezier(.22,1,.36,1)}
+@keyframes cIn{from{opacity:0;transform:translateY(26px)}}
+.l-logo{text-align:center;margin-bottom:28px}
+.l-logo .ico{font-size:2.4rem;margin-bottom:9px;filter:drop-shadow(0 0 12px var(--cyan))}
+.l-logo h1{font-family:var(--hd);font-size:clamp(.72rem,2.8vw,.9rem);letter-spacing:3px;color:var(--cyan)}
+.l-logo p{font-size:.7rem;color:var(--sub);letter-spacing:1px;margin-top:4px}
+.l-err{background:var(--redD);border:1px solid var(--red);border-radius:var(--r);
+  padding:8px 12px;font-size:.79rem;color:var(--red);margin-bottom:13px}
+.l-div{display:flex;align-items:center;gap:10px;margin:16px 0;font-size:.71rem;color:var(--mute)}
+.l-div::before,.l-div::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.g-btn{width:100%;padding:9px 14px;border-radius:var(--r);border:1px dashed var(--bdr2);
+  background:transparent;color:var(--sub);font-family:var(--ui);font-size:.84rem;font-weight:500;
+  cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px;
+  -webkit-tap-highlight-color:transparent}
+.g-btn:hover{border-color:var(--amber);color:var(--amber);background:var(--amberD)}
+
+/* APP SHELL */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.on{display:flex}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:600;height:var(--th);
+  background:rgba(5,9,14,.94);border-bottom:1px solid var(--bdr);
+  backdrop-filter:blur(14px);display:flex;align-items:center;gap:10px;padding:0 14px}
+.tb-brand{font-family:var(--hd);font-size:clamp(.6rem,2vw,.8rem);letter-spacing:2px;
+  color:var(--cyan);white-space:nowrap;text-shadow:0 0 10px rgba(0,212,255,.5);flex-shrink:0}
+.tb-tick{flex:1;overflow:hidden;min-width:0;
+  mask-image:linear-gradient(90deg,transparent 0%,black 6%,black 94%,transparent 100%)}
+.tick-tr{display:flex;gap:26px;width:max-content;animation:tickR 35s linear infinite}
+.tick-tr:hover{animation-play-state:paused}
+@keyframes tickR{to{transform:translateX(-50%)}}
+.ti{font-family:var(--mono);font-size:.73rem;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ti-s{color:var(--cyan)}
+.tb-r{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.av{width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:var(--bg);flex-shrink:0}
+.tb-un{font-size:.8rem;font-weight:600;display:none}
+@media(min-width:480px){.tb-un{display:block}}
+.rtag{font-size:.62rem;padding:2px 7px;border-radius:3px;font-family:var(--mono);font-weight:700;flex-shrink:0}
+.rt-a{background:var(--cyanD);border:1px solid var(--cyan);color:var(--cyan)}
+.rt-u{background:var(--greenD);border:1px solid var(--green);color:var(--green)}
+.rt-g{background:var(--amberD);border:1px solid var(--amber);color:var(--amber)}
+
+/* NAV */
+.nav{background:var(--surf);border-bottom:1px solid var(--bdr);
+  display:flex;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:0 6px}
+.nav::-webkit-scrollbar{display:none}
+.ntab{padding:0 15px;height:var(--nh);font-family:var(--ui);font-weight:600;font-size:.8rem;
+  letter-spacing:.4px;color:var(--sub);background:transparent;border:none;
+  border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;
+  transition:all .16s;display:flex;align-items:center;gap:6px;
+  -webkit-tap-highlight-color:transparent}
+.ntab:hover{color:var(--txt)}
+.ntab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.ntab .ni{font-size:.9rem}
+
+/* CONTENT */
+.ctn{flex:1;padding:clamp(12px,3vw,22px);max-width:1400px;width:100%;margin:0 auto}
+.panel{display:none;animation:pIn .26s ease}
+.panel.on{display:block}
+@keyframes pIn{from{opacity:0;transform:translateY(5px)}}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--bdr);padding:9px 14px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px;
+  font-size:.67rem;color:var(--mute);font-family:var(--mono)}
+#clk{color:var(--cyan)}
+
+/* CARD */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:clamp(13px,2.8vw,20px)}
+.card.c-c{border-top:2px solid var(--cyan)}
+.card.c-g{border-top:2px solid var(--green)}
+.card.c-a{border-top:2px solid var(--amber)}
+.card.c-r{border-top:2px solid var(--red)}
+.ch{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;
+  margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--bdr)}
+.ct{font-family:var(--ui);font-weight:700;font-size:.83rem;letter-spacing:.7px;
+  text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dc{background:var(--cyan);box-shadow:0 0 5px var(--cyan)}
+.dg{background:var(--green);box-shadow:0 0 5px var(--green)}
+.da{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+.dr{background:var(--red);box-shadow:0 0 5px var(--red)}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+@media(max-width:1100px){.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:780px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+@media(max-width:480px){.g4,.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:340px){.g4,.g3{grid-template-columns:1fr}}
+
+/* KPI */
+.kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:clamp(11px,2.4vw,17px);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.kc::after{background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.kpi.kg::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.kpi.ka::after{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.kpi.kr::after{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.kl{font-size:clamp(.62rem,1.8vw,.7rem);text-transform:uppercase;letter-spacing:1.2px;color:var(--sub);margin-bottom:6px}
+.kv{font-family:var(--mono);font-size:clamp(1.25rem,4vw,1.55rem);font-weight:700;line-height:1}
+.ks{font-size:.67rem;color:var(--mute);margin-top:4px}
+
+/* CONN BADGE */
+.cbdg{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.69rem;
+  padding:3px 8px;border-radius:3px;flex-shrink:0}
+.cbdg.on{color:var(--green);background:var(--greenD);border:1px solid rgba(0,255,136,.18)}
+.cbdg.off{color:var(--amber);background:var(--amberD);border:1px solid rgba(255,179,0,.18)}
+.cd{width:5px;height:5px;border-radius:50%;background:currentColor;animation:bl 2s ease infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STOCK GRID */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(135px,17vw,190px),1fr));gap:11px}
+.scard{background:rgba(0,0,0,.26);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:12px 14px;cursor:pointer;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;inset:0;opacity:0;
+  background:radial-gradient(circle at 50% 0%,rgba(0,212,255,.07),transparent 70%);transition:opacity .2s}
+.scard:hover::before{opacity:1}
+.scard:hover{border-color:var(--bdr2);transform:translateY(-2px)}
+.scard.up{border-top:2px solid var(--green)}.scard.dn{border-top:2px solid var(--red)}
+.sc-s{font-family:var(--mono);font-size:.83rem;font-weight:700;color:var(--cyan)}
+.sc-n{font-size:.65rem;color:var(--sub);margin:2px 0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-p{font-family:var(--mono);font-size:clamp(.95rem,2.8vw,1.15rem);font-weight:700}
+.sc-c{font-family:var(--mono);font-size:.73rem;margin-top:3px}
+.sc-v{font-size:.62rem;color:var(--mute);margin-top:4px}
+@keyframes fup{0%,100%{background:transparent}50%{background:rgba(0,255,136,.11)}}
+@keyframes fdn{0%,100%{background:transparent}50%{background:rgba(255,60,90,.11)}}
+.f-up{animation:fup .5s}.f-dn{animation:fdn .5s}
+
+/* TABLE */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dt{width:100%;border-collapse:collapse;font-size:.79rem;min-width:360px}
+.dt thead tr{border-bottom:1px solid var(--bdr)}
+.dt th{padding:8px 11px;text-align:left;font-size:.67rem;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--sub);font-weight:600;white-space:nowrap}
+.dt td{padding:8px 11px;border-bottom:1px solid rgba(15,34,56,.45);
+  font-family:var(--mono);font-size:.76rem}
+.dt tbody tr{transition:background .13s}
+.dt tbody tr:hover{background:rgba(0,212,255,.025)}
+.dt tbody tr:last-child td{border-bottom:none}
+.tact{display:flex;gap:4px}
+
+/* SEARCH */
+.srch{position:relative;margin-bottom:11px}
+.srch::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.77rem;pointer-events:none}
+.srch input{width:100%;background:rgba(0,0,0,.38);border:1px solid var(--bdr2);color:var(--txt);
+  padding:7px 11px 7px 32px;border-radius:var(--r);font-family:var(--mono);font-size:.8rem;
+  outline:none;transition:border-color .16s;-webkit-appearance:none}
+.srch input:focus{border-color:var(--cyan)}
+
+/* SECTION TITLE */
+.stl{font-family:var(--hd);font-size:.76rem;letter-spacing:2.5px;color:var(--cyan);
+  text-transform:uppercase;display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.stl::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* PROGBAR */
+.pb{height:3px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.pbf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .5s ease}
+
+/* AI OUTPUT */
+.aout{background:rgba(0,0,0,.42);border:1px solid var(--bdr2);border-left:3px solid var(--cyan);
+  padding:14px 17px;border-radius:var(--r);font-family:var(--mono);font-size:.79rem;
+  line-height:1.75;min-height:110px;white-space:pre-wrap}
+.aout.cursor::after{content:'█';animation:bc 1s step-end infinite;color:var(--cyan)}
+@keyframes bc{0%,100%{opacity:1}50%{opacity:0}}
+.sig{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  font-size:.75rem;font-weight:700;font-family:var(--ui)}
+.s-b{background:var(--greenD);border:1px solid var(--green);color:var(--green)}
+.s-s{background:var(--redD);border:1px solid var(--red);color:var(--red)}
+.s-h{background:var(--cyanD);border:1px solid var(--cyan);color:var(--cyan)}
+
+/* CHART */
+.cw{position:relative;height:clamp(155px,24vw,215px)}
+
+/* AROW */
+.arow{display:flex;gap:7px;flex-wrap:wrap;padding-top:13px;border-top:1px solid var(--bdr);margin-top:13px}
+
+/* EDIT NOTICE */
+.enote{margin-top:8px;padding:6px 11px;border-radius:var(--r);
+  background:var(--amberD);border:1px solid rgba(255,179,0,.22);
+  font-size:.73rem;color:var(--amber);font-family:var(--mono)}
+
+/* GUEST WARN */
+.gw{background:var(--amberD);border:1px solid rgba(255,179,0,.18);
+  border-radius:var(--r);padding:9px 13px;font-size:.79rem;color:var(--amber);margin-bottom:14px}
+.gw a{color:var(--cyan)}
+
+/* ARCH */
+.arch{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;
+  padding:14px 0;font-family:var(--mono);font-size:.73rem}
+.ab{border-radius:var(--r);padding:10px 14px;text-align:center;min-width:96px}
+.ab-c{background:var(--cyanD);border:1px solid var(--cyan)}
+.ab-g{background:var(--greenD);border:1px solid var(--green)}
+.abstk{display:flex;flex-direction:column;gap:7px}
+.arw{color:var(--mute);font-size:1.1rem;padding:0 2px}
+
+/* SPINNER */
+.spin{width:15px;height:15px;border-radius:50%;border:2px solid var(--bdr2);
+  border-top-color:var(--cyan);animation:sr .6s linear infinite;display:inline-block}
+@keyframes sr{to{transform:rotate(360deg)}}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 14px;color:var(--mute);font-size:.81rem}
+.ei{font-size:1.8rem;margin-bottom:7px;opacity:.45}
+
+/* MOBILE */
+@media(max-width:520px){
+  .topbar{gap:6px;padding:0 10px}
+  .tb-brand{font-size:.58rem;letter-spacing:1px}
+  .modal{padding:18px 16px}
+  .ntab{padding:0 11px;font-size:.74rem}
+  .ntab .ni{display:none}
+}
+
+/* CART DRAWER */
+.drawer-overlay{position:fixed;inset:0;z-index:1500;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .28s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:1600;width:min(400px,96vw);background:var(--surf2);border-left:1px solid var(--bdr2);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);box-shadow:-8px 0 40px rgba(0,0,0,.5)}
+.drawer.open{transform:translateX(0)}
+.drawer-hd{padding:16px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-ttl{font-family:var(--hd);font-size:.78rem;letter-spacing:2px;color:var(--cyan)}
+.drawer-body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:11px}
+.drawer-ft{padding:14px 18px;border-top:1px solid var(--bdr);flex-shrink:0}
+.drawer-saldo{background:rgba(0,0,0,.32);border:1px solid var(--bdr);border-radius:var(--r);padding:11px 14px;margin-bottom:11px}
+.drawer-saldo .kl{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:3px}
+.drawer-saldo .kv{font-family:var(--mono);font-size:1.2rem;color:var(--green)}
+.cart-item{background:rgba(0,0,0,.22);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 13px}
+.cart-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.cart-sym{font-family:var(--mono);font-size:.85rem;font-weight:700;color:var(--cyan)}
+.cart-nm{font-size:.65rem;color:var(--sub)}
+.cart-pl{font-family:var(--mono);font-size:.78rem}
+.cart-row{display:flex;gap:5px;align-items:center;margin-top:7px}
+.cart-qty-inp{width:70px;background:rgba(0,0,0,.42);border:1px solid var(--bdr2);color:var(--txt);padding:4px 8px;border-radius:var(--r);font-family:var(--mono);font-size:.78rem;outline:none;text-align:center;-webkit-appearance:none}
+.cart-qty-inp:focus{border-color:var(--green)}
+
+/* FLOAT CART BTN */
+.fcart{position:fixed;bottom:22px;right:22px;z-index:1400;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 20px rgba(0,212,255,.4);transition:transform .18s,box-shadow .18s}
+.fcart:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(0,212,255,.55)}
+.fcart-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);display:none}
+.fcart-badge.vis{display:flex}
+
+/* INLINE BUY */
+.buy-row{display:flex;gap:4px;align-items:center;padding-top:8px;margin-top:0;border-top:1px solid var(--bdr)}
+.buy-inp{width:65px;background:rgba(0,0,0,.42);border:1px solid var(--bdr2);color:var(--txt);padding:4px 7px;border-radius:var(--r);font-family:var(--mono);font-size:.75rem;outline:none;text-align:center;-webkit-appearance:none}
+.buy-inp:focus{border-color:var(--green)}
+
+/* SYNC COUNTDOWN */
+#syncCountdown{display:none;font-family:var(--mono);font-size:.68rem;color:var(--amber);padding:2px 8px;border-radius:3px;border:1px solid rgba(255,179,0,.2);background:var(--amberD)}
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="lp">
+  <div class="lcard">
+    <div class="l-logo">
+      <div class="ico">⬡</div>
+      <h1>NEXO BOLSA</h1>
+      <p>PLATAFORMA DE INVERSIÓN · SANTIAGO</p>
+    </div>
+    <div id="l-mode" style="text-align:center;margin-bottom:15px;color:var(--cyan);font-weight:600;font-size:0.9rem">INICIAR SESIÓN</div>
+    <div id="l-err" class="l-err hidden"></div>
+    <div class="fg">
+      <label>Usuario</label>
+      <input id="l-u" class="fi" type="text" placeholder="Ingresa tu usuario" autocomplete="username">
+    </div>
+    <div class="fg" id="fg-email" style="display:none">
+      <label>Email</label>
+      <input id="l-e" class="fi" type="email" placeholder="tucorreo@ejemplo.com">
+    </div>
+    <div class="fg" id="fg-name" style="display:none">
+      <label>Nombre Completo</label>
+      <input id="l-n" class="fi" type="text" placeholder="Juan Pérez">
+    </div>
+    <div class="fg">
+      <label>Contraseña</label>
+      <input id="l-p" class="fi" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn bc btn-fw" id="btn-li" onclick="submitAuth()">
+      <span id="l-sp"></span> INGRESAR
+    </button>
+    <div style="text-align:center; margin-top:14px; font-size:0.75rem;">
+      <a href="#" style="color:var(--sub);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--sub)'" onclick="toggleAuthMode()" id="l-toggle">¿No tienes cuenta? Regístrate aquí</a>
+    </div>
+    <div class="l-div">ó</div>
+    <button class="g-btn" onclick="doGuest()">👤 &nbsp;Continuar como Invitado</button>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <header class="topbar">
+    <div class="tb-brand">⬡ NEXO BOLSA</div>
+    <div class="tb-tick"><div class="tick-tr" id="tktr"></div></div>
+    <div class="tb-r">
+      <div id="syncCountdown"></div>
+      <div class="av" id="uAv">?</div>
+      <span class="tb-un" id="uNm"></span>
+      <span class="rtag rt-u" id="uRl">USER</span>
+      <button class="btn bx btn-xs" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav"></nav>
+
+  <main class="ctn">
+
+    <!-- DASHBOARD -->
+    <div class="panel on" id="panel-dashboard">
+      <div class="g4" style="margin-bottom:15px">
+        <div class="kpi kc"><div class="kl">Acciones</div><div class="kv cc" id="k-s">10</div><div class="ks">Mercado SNGO</div></div>
+        <div class="kpi kg"><div class="kl">Participantes</div><div class="kv cg" id="k-u">6</div><div class="ks">Usuarios activos</div></div>
+        <div class="kpi ka"><div class="kl">Alzas</div><div class="kv ca" id="k-up">—</div><div class="ks">vs cierre</div></div>
+        <div class="kpi kr"><div class="kl">Bajas</div><div class="kv cr" id="k-dn">—</div><div class="ks">vs cierre</div></div>
+      </div>
+
+      <div id="lastSyncBar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin-bottom:15px;padding:8px 14px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);font-size:.73rem;font-family:var(--mono)">
+        <span style="color:var(--sub)">Datos de mercado · <span id="lastSyncTxt" class="cc">—</span></span>
+        <span id="nextSyncTxt" style="color:var(--mute)"></span>
+      </div>
+
+      <div class="stl">Bolsa de Santiago · SNGO<span id="mktStateTag" style="font-size:.65rem;font-weight:400;font-family:var(--mono);margin-left:9px;color:var(--sub)"></span></div>
+      <div class="sgrid" id="sgrid"></div>
+
+      <div class="g2" style="margin-top:17px">
+        <div class="card">
+          <div class="ch">
+            <div class="ct"><span class="dot dc"></span>Precio</div>
+            <select id="chSel" class="fi" style="width:auto;padding:4px 9px;font-size:.72rem" onchange="updCharts()"></select>
+          </div>
+          <div class="cw"><canvas id="pChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct"><span class="dot da"></span>Volumen</div></div>
+          <div class="cw"><canvas id="vChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="panel" id="panel-ai">
+      <div class="g2" style="margin-bottom:15px">
+        <div class="card c-c">
+          <div class="ch"><div class="ct"><span class="dot dc"></span>Parámetros</div></div>
+          <div class="fg"><label>Acción</label>
+            <select id="ai-sel" class="fi" onchange="aiInd()"></select></div>
+          <div class="fg"><label>Capital disponible (CLP)</label>
+            <input id="ai-cap" class="fi" type="number" value="1000000"></div>
+          <div class="fg"><label>Perfil de riesgo</label>
+            <select id="ai-rsk" class="fi">
+              <option value="0.5">Conservador</option>
+              <option value="1.0" selected>Moderado</option>
+              <option value="1.5">Agresivo</option>
+            </select></div>
+          <button class="btn bc btn-fw" style="margin-top:4px" onclick="runAI()">🤖 Ejecutar Análisis</button>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct"><span class="dot dg"></span>Indicadores</div></div>
+          <div id="ai-ind" style="font-family:var(--mono);font-size:.79rem;line-height:2.1">
+            <span class="cs">Selecciona una acción…</span></div>
+        </div>
+      </div>
+      <div class="card c-c">
+        <div class="ch">
+          <div class="ct"><span class="dot dc"></span>🤖 Recomendación IA</div>
+          <div id="ai-bdg"></div>
+        </div>
+        <div class="aout" id="ai-out"><span class="cs">[ Esperando instrucción… ]</span></div>
+      </div>
+      <div class="card" style="margin-top:15px">
+        <div class="ch">
+          <div class="ct"><span class="dot da"></span>Ranking · Mejores Oportunidades</div>
+          <button class="btn ba btn-sm" onclick="runAllAI()">⚡ Analizar Todo</button>
+        </div>
+        <div id="ai-rnk"><div class="empty"><div class="ei">📊</div>Haz clic en "Analizar Todo"</div></div>
+      </div>
+    </div>
+
+    <!-- PORTAFOLIO (ahora con datos reales desde PostgreSQL) -->
+    <div class="panel" id="panel-carrito">
+      <div class="stl">🛒 Mi Portafolio</div>
+      <div class="kpi kc" style="margin-bottom:15px"><div class="kl">Saldo Disponible</div><div class="kv cc" id="c-saldo">$0</div><div class="ks">Capital en cuenta</div></div>
+      <div class="card">
+        <div class="tw">
+          <table class="dt">
+            <thead><tr><th>Símbolo</th><th>Cantidad</th><th>Precio Compra</th><th>Actual</th><th>P&L</th><th>Acción</th></tr></thead>
+            <tbody id="cartTbl"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING (con usuarios reales desde BD) -->
+    <div class="panel" id="panel-ranking">
+      <div class="stl">🏆 Ranking de Competencia</div>
+      <div class="card">
+        <div class="tw">
+          <table class="dt">
+            <thead><tr><th>#</th><th>Jugador</th><th>Portafolio</th><th>Saldo</th><th>Total</th><th>P&L %</th></tr></thead>
+            <tbody id="rankTbl"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USUARIOS (admin) -->
+    <div class="panel" id="panel-postgres">
+      <div class="gw hidden" id="gw-pg">⚠ Modo Invitado — CRUD deshabilitado. <a href="#" onclick="doLogout()">Iniciar sesión</a></div>
+      <div class="g2">
+        <div class="card c-c">
+          <div class="ch">
+            <div class="ct"><span class="dot dc"></span>Gestión de Usuarios</div>
+            <span class="cbdg off" id="pgBdg"><span class="cd"></span>local</span>
+          </div>
+          <div class="fg"><label>Usuario</label><input id="pg-u" class="fi" placeholder="nombre_usuario"></div>
+          <div class="fg"><label>Email</label><input id="pg-e" class="fi" type="email" placeholder="correo@ejemplo.com"></div>
+          <div class="fg"><label>Nombre Completo</label><input id="pg-n" class="fi" placeholder="Nombre Apellido"></div>
+          <div class="fg"><label>Saldo Inicial</label><input id="pg-balance" class="fi" type="number" placeholder="0" value="10000000"></div>
+          <div class="fg"><label>Contraseña</label><input id="pg-p" class="fi" type="password" placeholder="••••••••"></div>
+          <div class="fg"><label>Rol</label>
+            <div class="rpills">
+              <div class="rpill rp-u" id="rp-u" onclick="setRole('user')">👤 user</div>
+              <div class="rpill" id="rp-a" onclick="setRole('admin')">🔑 admin</div>
+            </div>
+          </div>
+          <div class="arow">
+            <button class="btn bg btn-sm" id="pgAdd" onclick="pgAdd()">＋ Agregar</button>
+            <button class="btn ba btn-sm" id="pgUpd" onclick="pgSave()">✎ Actualizar</button>
+            <button class="btn bx btn-sm" onclick="pgClr()">✕</button>
+          </div>
+          <div id="pg-nt" class="enote hidden"></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div class="ct"><span class="dot dg"></span>Usuarios Registrados</div>
+            <button class="btn bc btn-sm" onclick="pgLoad()">⟳</button>
+          </div>
+          <div class="srch"><input type="text" id="pg-srch" placeholder="Buscar..." oninput="pgFlt()"></div>
+          <div class="tw" style="max-height:310px;overflow-y:auto">
+            <table class="dt">
+              <thead><tr><th>Usuario</th><th>Nombre</th><th>Saldo</th><th>Rol</th><th>Acc.</th></tr></thead>
+              <tbody id="pgTbl"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="g3" style="margin-top:15px">
+        <div class="kpi kc"><div class="kl">Total</div><div class="kv cc" id="pg-t">—</div></div>
+        <div class="kpi ka"><div class="kl">Admins</div><div class="kv ca" id="pg-a">—</div></div>
+        <div class="kpi kg"><div class="kl">Estándar</div><div class="kv cg" id="pg-s">—</div></div>
+      </div>
+    </div>
+
+    <!-- ACCIONES (MongoDB admin) -->
+    <div class="panel" id="panel-mongodb">
+      <div class="gw hidden" id="gw-mg">⚠ Modo Invitado — sólo lectura. <a href="#" onclick="doLogout()">Iniciar sesión</a></div>
+      <div class="g2">
+        <div class="card c-g">
+          <div class="ch">
+            <div class="ct"><span class="dot dg"></span>Gestión de Acciones</div>
+            <span class="cbdg off" id="mgBdg"><span class="cd"></span>local</span>
+          </div>
+          <div class="fg"><label>Símbolo</label><input id="mg-s" class="fi" placeholder="SONDA.SN"></div>
+          <div class="fg"><label>Empresa</label><input id="mg-n" class="fi" placeholder="Nombre de la empresa"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label>Precio CLP</label><input id="mg-p" class="fi" type="number" placeholder="0.00"></div>
+            <div class="fg"><label>Cierre Ant.</label><input id="mg-v" class="fi" type="number" placeholder="0.00"></div>
+          </div>
+          <div class="fg"><label>Volumen</label><input id="mg-vol" class="fi" type="number" placeholder="1000000"></div>
+          <div class="arow">
+            <button class="btn bg btn-sm" id="mgAdd" onclick="mgAddS()">＋ Agregar</button>
+            <button class="btn ba btn-sm" id="mgUpd" onclick="mgSave()">✎ Actualizar</button>
+            <button class="btn bx btn-sm" onclick="mgClr()">✕</button>
+          </div>
+          <div id="mg-nt" class="enote hidden"></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div class="ct"><span class="dot da"></span>stock_quotes</div>
+            <button class="btn bc btn-sm" onclick="mgLoad()">⟳</button>
+          </div>
+          <div class="srch"><input type="text" id="mg-srch" placeholder="Buscar símbolo o empresa..." oninput="mgFlt()"></div>
+          <div class="tw" style="max-height:260px;overflow-y:auto">
+            <table class="dt">
+              <thead><tr><th>Símbolo</th><th>Precio</th><th>Δ%</th><th>Acc.</th></tr></thead>
+              <tbody id="mgTbl"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:11px;background:rgba(0,0,0,.32);border-radius:var(--r);padding:11px 13px">
+            <div style="font-size:.68rem;color:var(--sub);margin-bottom:5px;font-family:var(--mono)">BSON PREVIEW</div>
+            <pre id="mgDoc" style="font-family:var(--mono);font-size:.7rem;color:var(--green);overflow-x:auto;white-space:pre-wrap;max-height:130px;overflow-y:auto">{ "symbol": "—" }</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM (admin) -->
+    <div class="panel" id="panel-system">
+      <div class="g2" style="margin-bottom:15px">
+        <div class="card c-c">
+          <div class="ch"><div class="ct"><span class="dot dc"></span>Estado API</div></div>
+          <table class="dt" style="min-width:0">
+            <tbody>
+              <tr><td class="cs">Estado</td><td><span class="cbdg off" id="cnBdg"><span class="cd"></span>DEMO</span></td></tr>
+              <tr><td class="cs">Última sync</td><td class="cc" id="sys-lastSync">—</td></tr>
+              <tr><td class="cs">Próxima sync</td><td class="cc" id="sys-nextSync">—</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:13px;display:flex;gap:7px">
+            <button class="btn bc btn-sm" onclick="checkAPI()">⟳ Verificar conexión</button>
+            <button class="btn bg btn-sm" id="btnManualSync" onclick="syncS()">⚡ Sincronizar API</button>
+          </div>
+          <div id="syncNote" class="enote hidden" style="margin-top:8px"></div>
+        </div>
+        <div class="card c-g">
+          <div class="ch"><div class="ct"><span class="dot dg"></span>Simulación de Mercado</div>
+            <button class="btn bg btn-sm" id="btnSim" onclick="toggleSim()">▶ Iniciar</button>
+          </div>
+          <p style="font-size:.77rem;color:var(--sub);margin-bottom:9px">Volatilidad simulada ±1.5% por tick</p>
+          <div class="pb"><div class="pbf" id="sPrg" style="width:0%"></div></div>
+          <div style="font-size:.7rem;color:var(--mute);margin-top:5px;font-family:var(--mono)" id="sInf">Detenida</div>
+        </div>
+      </div>
+      <div class="g2" style="margin-bottom:15px">
+        <div class="card c-c">
+          <div class="ch"><div class="ct"><span class="dot dc"></span>Conexiones Internas</div></div>
+          <table class="dt" style="min-width:0">
+            <tbody>
+              <tr><td class="cs">PostgreSQL</td><td class="cc">localhost:5432 · comerciotech</td></tr>
+              <tr><td class="cs">MongoDB</td><td class="cc">localhost:27017 · comerciotech</td></tr>
+              <tr><td class="cs">Flask API</td><td class="cc">http://localhost:5000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card c-g">
+          <div class="ch"><div class="ct"><span class="dot dg"></span>Stack Tecnológico</div></div>
+          <table class="dt" style="min-width:0">
+            <tbody>
+              <tr><td class="cs">Backend</td><td class="cg">Python 3 · Flask</td></tr>
+              <tr><td class="cs">Relacional</td><td class="cg">PostgreSQL + psycopg</td></tr>
+              <tr><td class="cs">NoSQL</td><td class="cg">MongoDB + pymongo</td></tr>
+              <tr><td class="cs">Auth</td><td class="cg">Werkzeug PBKDF2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card c-r">
+        <div class="ch">
+          <div class="ct"><span class="dot dr"></span>Log del Sistema</div>
+          <button class="btn bx btn-sm" onclick="clrLog()">🗑 Limpiar</button>
+        </div>
+        <div id="sLog" style="background:rgba(0,0,0,.4);padding:11px 13px;border-radius:var(--r);
+          font-family:var(--mono);font-size:.71rem;max-height:270px;overflow-y:auto;line-height:1.8"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 NEXO BOLSA · Plataforma Financiera INACAP</span>
+    <span id="clk" class="cc"></span>
+    <span id="syncStatus" style="font-size:.65rem;color:var(--mute)">⟳ sync</span>
+  </footer>
+</div>
+
+<!-- DRAWER PORTAFOLIO -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="cartDrawer">
+  <div class="drawer-hd">
+    <span class="drawer-ttl">🛒 MI PORTAFOLIO</span>
+    <button class="btn bx btn-xs" onclick="closeDrawer()">✕ Cerrar</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="drawer-saldo">
+      <div class="kl">Saldo Disponible</div>
+      <div class="kv" id="drawer-saldo">$0</div>
+    </div>
+    <div id="drawerItems"><div class="empty"><div class="ei">🛒</div>Sin posiciones abiertas</div></div>
+  </div>
+  <div class="drawer-ft">
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.78rem;margin-bottom:9px">
+      <span style="color:var(--sub)">Valor portafolio</span>
+      <span class="cc" id="drawer-portVal">$0</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.85rem;font-weight:700;margin-bottom:11px">
+      <span style="color:var(--sub)">P&amp;L Total</span>
+      <span id="drawer-pl">—</span>
+    </div>
+    <button class="btn bc btn-fw btn-sm" onclick="go('carrito');closeDrawer()">Ver portafolio completo</button>
+  </div>
+</div>
+
+<!-- BOTON FLOTANTE PORTAFOLIO -->
+<button class="fcart hidden" id="fcartBtn" onclick="openDrawer()" title="Mi portafolio">
+  🛒
+  <span class="fcart-badge" id="fcartBadge">0</span>
+</button>
+
+<!-- DELETE MODAL -->
+<div id="delMdl" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-ttl">⚠ CONFIRMAR ELIMINACIÓN</div>
+    <p style="font-size:.82rem;color:var(--sub);margin-bottom:18px" id="delTxt">¿Estás seguro?</p>
+    <div style="display:flex;gap:9px;justify-content:flex-end">
+      <button class="btn bx btn-sm" onclick="closeMdl()">Cancelar</button>
+      <button class="btn br btn-sm" id="delOk">🗑 Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.protocol === 'file:' ? 'http://localhost:5000' : window.location.origin;
+let usr = null;
+let isG = false;
+let stocks = [];
+let usuarios = [];
+let simOn = false;
+let simIv = null;
+let simTk = 0;
+let pHist = {};
+let pCh = null;
+let vCh = null;
+let sRole = 'user';
+let eUID = null;
+let eSID = null;
+let userPositions = [];
+let userBalance = 0;
+let _pendingTrade = false;
+
+const $ = id => document.getElementById(id);
+const escHtml = s => { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; };
+const fN = n => n >= 1000 ? n.toLocaleString('es-CL', {minimumFractionDigits: 0, maximumFractionDigits: 2}) : parseFloat(n).toFixed(2);
+const fV = v => v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : v >= 1e3 ? (v/1e3).toFixed(0) + 'K' : v;
+const chg = s => ((s.px - s.pc) / s.pc * 100);
+const clr = c => c > 0 ? 'var(--green)' : c < 0 ? 'var(--red)' : 'var(--sub)';
+const arr = c => c > 0 ? '▲' : c < 0 ? '▼' : '—';
+
+const DS = [
+  {id:'s1', sym:'SONDA.SN', nm:'Sonda IT', px:415.00, pc:410.50, vol:1250000},
+  {id:'s2', sym:'ENTEL.SN', nm:'Empresa Nac. Telecom', px:3200.00, pc:3250.00, vol:850000},
+  {id:'s3', sym:'NUAM.SN', nm:'nuam exchange', px:125.00, pc:123.00, vol:3200000},
+  {id:'s4', sym:'SQM-B.SN', nm:'SQM', px:42500.00, pc:41800.00, vol:2100000},
+  {id:'s5', sym:'CHILE.SN', nm:'Banco de Chile', px:105.50, pc:105.00, vol:15600000},
+  {id:'s6', sym:'ENELAM.SN', nm:'Enel Americas', px:102.00, pc:104.50, vol:8900000},
+  {id:'s7', sym:'CENCOSUD.SN', nm:'Cencosud', px:1680.00, pc:1650.00, vol:3400000},
+  {id:'s8', sym:'LTM.SN', nm:'LATAM Airlines', px:12.50, pc:12.10, vol:45000000},
+  {id:'s9', sym:'BCI.SN', nm:'Banco BCI', px:25400.00, pc:25600.00, vol:1100000},
+  {id:'s10', sym:'FALABELLA.SN', nm:'Falabella', px:2150.00, pc:2100.00, vol:2800000},
+];
+
+// ========== AUTENTICACIÓN ==========
+let authMode = 'login';
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const isReg = authMode === 'register';
+  $('l-mode').textContent = isReg ? 'REGISTRO DE USUARIO' : 'INICIAR SESIÓN';
+  $('fg-email').style.display = isReg ? 'block' : 'none';
+  $('fg-name').style.display = isReg ? 'block' : 'none';
+  $('btn-li').innerHTML = `<span id="l-sp"></span> ${isReg ? 'REGISTRARSE' : 'INGRESAR'}`;
+  $('l-toggle').textContent = isReg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate aquí';
+  $('l-err').classList.add('hidden');
+}
+
+async function submitAuth() {
+  if (authMode === 'login') {
+    await doLogin();
+  } else {
+    await doRegister();
+  }
+}
+
+async function doRegister() {
+  const u = $('l-u').value.trim();
+  const p = $('l-p').value;
+  const e = $('l-e').value.trim();
+  const n = $('l-n').value.trim();
+  const err = $('l-err');
+  
+  if (!u || !p || !e || !n) { showErr(err, 'Completa todos los campos'); return; }
+  if (p.length < 6) { showErr(err, 'Contraseña mínimo 6 caracteres'); return; }
+  
+  const btn = $('btn-li');
+  btn.disabled = true;
+  $('l-sp').innerHTML = '<span class="spin"></span> ';
+  
+  try {
+    const r = await fetch(`${API}/api/postgres/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ username: u, password: p, email: e, full_name: n }),
+      signal: AbortSignal.timeout(4000)
+    });
+    
+    if (r.ok) {
+      log('OK', `Registro exitoso: ${u}`);
+      await doLogin();
+    } else {
+      const data = await r.json();
+      showErr(err, data.error || 'Error al registrar usuario');
+    }
+  } catch (ex) {
+    showErr(err, 'Error de conexión o timeout');
+  }
+  
+  btn.disabled = false;
+  $('l-sp').innerHTML = '';
+}
+
+async function doLogin() {
+  const u = $('l-u').value.trim();
+  const p = $('l-p').value;
+  const err = $('l-err');
+  
+  if (!u || !p) { showErr(err, 'Ingresa usuario y contraseña'); return; }
+  
+  const btn = $('btn-li');
+  btn.disabled = true;
+  $('l-sp').innerHTML = '<span class="spin"></span> ';
+  
+  try {
+    const r = await fetch(`${API}/api/postgres/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ username: u, password: p }),
+      signal: AbortSignal.timeout(3000)
+    });
+    
+    if (r.ok) {
+      const d = await r.json();
+      usr = d.data || d.user || { username: u, full_name: u, role: 'user' };
+      log('OK', `Login API: ${u}`);
+      isG = false;
+      await loadUserData();
+      launch();
+    } else {
+      showErr(err, 'Credenciales incorrectas');
+      $('l-p').value = '';
+    }
+  } catch (e) {
+    showErr(err, 'Error de conexión al servidor');
+  }
+  
+  btn.disabled = false;
+  $('l-sp').innerHTML = '';
+}
+
+async function loadUserData() {
+  if (!usr || isG) return;
+
+  try {
+    const hdrs = { 'ngrok-skip-browser-warning': 'true' };
+    const sig = { signal: AbortSignal.timeout(5000) };
+    const [balanceRes, positionsRes] = await Promise.all([
+      fetch(`${API}/api/postgres/usuarios/${usr.id}/balance`, { headers: hdrs, ...sig }),
+      fetch(`${API}/api/postgres/usuarios/${usr.id}/posiciones`, { headers: hdrs, ...sig })
+    ]);
+
+    if (balanceRes.ok) {
+      const d = await balanceRes.json();
+      userBalance = d.balance || 0;
+    }
+    if (positionsRes.ok) {
+      const d = await positionsRes.json();
+      userPositions = d.data || [];
+    }
+    updCarrito();
+  } catch (e) {
+    console.warn('Error cargando datos del usuario:', e);
+  }
+}
+
+function doGuest() {
+  usr = { username: 'invitado', full_name: 'Invitado', role: 'guest', id: null };
+  isG = true;
+  userBalance = 10000000;
+  userPositions = [];
+  log('INFO', 'Acceso invitado');
+  launch();
+}
+
+function doLogout() {
+  usr = null;
+  isG = false;
+  simOn = false;
+  if (simIv) clearInterval(simIv);
+  $('app').classList.remove('on');
+  $('app').style.display = '';
+  $('lp').style.display = '';
+  $('l-u').value = '';
+  $('l-p').value = '';
+  $('l-err').classList.add('hidden');
+}
+
+function launch() {
+  $('lp').style.display = 'none';
+  $('app').style.display = 'flex';
+  $('app').classList.add('on');
+  stocks = JSON.parse(JSON.stringify(DS));
+  setupUsr();
+  buildNav();
+  init();
+}
+
+function setupUsr() {
+  const ini = usr.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  $('uAv').textContent = ini;
+  $('uNm').textContent = usr.role === 'admin' ? 'Bienvenido Administrador' : usr.full_name.split(' ')[0];
+  const rt = $('uRl');
+  if (isG) { rt.className = 'rtag rt-g'; rt.textContent = 'INVITADO'; }
+  else if (usr.role === 'admin') { rt.className = 'rtag rt-a'; rt.textContent = 'ADMIN'; }
+  else { rt.className = 'rtag rt-u'; rt.textContent = 'USER'; }
+}
+
+function buildNav() {
+  const nav = $('nav');
+  nav.innerHTML = '';
+  
+  const base = [
+    { p: 'dashboard', i: '🏦', l: 'Mercado' },
+    { p: 'carrito', i: '💼', l: 'Portafolio' },
+    { p: 'ranking', i: '🏆', l: 'Ranking' },
+    { p: 'ai', i: '🤖', l: 'Asesor IA' }
+  ];
+  
+  const admin = [
+    { p: 'postgres', i: '👥', l: 'Usuarios' },
+    { p: 'mongodb', i: '📈', l: 'Mercado Admin' },
+    { p: 'system', i: '⚙', l: 'Sistema' }
+  ];
+  
+  const tabs = (!isG && usr.role === 'admin') ? [...base, ...admin] : base;
+  
+  tabs.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'ntab';
+    b.dataset.p = t.p;
+    b.innerHTML = `<span class="ni">${t.i}</span>${t.l}`;
+    b.onclick = () => go(t.p);
+    nav.appendChild(b);
+  });
+  
+  go('dashboard');
+}
+
+function go(p) {
+  document.querySelectorAll('.ntab').forEach(t => t.classList.toggle('on', t.dataset.p === p));
+  document.querySelectorAll('.panel').forEach(pl => pl.classList.toggle('on', pl.id === `panel-${p}`));
+}
+
+function init() {
+  rdGrid();
+  rdTick();
+  pgLoad();
+  mgLoad();
+  fillAISel();
+  initCharts();
+  updKPI();
+  setInterval(() => { $('clk').textContent = new Date().toLocaleTimeString('es-CL'); }, 1000);
+  checkAPI();
+  const fb = $('fcartBtn');
+  if (fb) fb.classList.remove('hidden');
+  checkSyncStatus();
+  setInterval(autoSyncAPI, 30 * 60 * 1000);
+  setInterval(checkSyncStatus, 60 * 1000);
+  setInterval(loadUserData, 25 * 1000);
+  log('OK', 'Sistema iniciado');
+  log('INFO', `${usr.username} [${usr.role}]`);
+  updCarrito();
+}
+
+// ========== GRID Y TICKER ==========
+function rdGrid() {
+  $('sgrid').innerHTML = stocks.map(s => {
+    const c = chg(s);
+    const col = clr(c);
+    const a = arr(c);
+    return `<div class="scard ${c > 0 ? 'up' : c < 0 ? 'dn' : ''}" id="sc-${s.id}">
+      <div onclick="aiFrom('${s.id}')" style="cursor:pointer">
+        <div class="sc-s">${s.sym}</div>
+        <div class="sc-n">${s.nm}</div>
+        <div class="sc-p" style="color:${col}">$${fN(s.px)}</div>
+        <div class="sc-c" style="color:${col}">${a} ${Math.abs(c).toFixed(2)}%</div>
+        <div class="sc-v" style="margin-bottom:8px">Vol: ${fV(s.vol)}</div>
+      </div>
+      <div class="buy-row">
+        <input class="buy-inp" type="number" id="qty-${s.id}" value="1" min="1" placeholder="Cant.">
+        <button class="btn bg btn-xs" id="buy-btn-${s.id}" style="flex:1" onclick="comprar('${s.id}')">&#128722; Comprar</button>
+      </div>
+    </div>`;
+  }).join('');
+  updKPI();
+  updCarrito();
+}
+
+function rdTick() {
+  $('tktr').innerHTML = [...stocks, ...stocks].map(s => {
+    const c = chg(s);
+    const col = clr(c);
+    const a = arr(c);
+    return `<span class="ti"><span class="ti-s">${s.sym}</span><span style="color:${col}">${fN(s.px)} ${a}${Math.abs(c).toFixed(2)}%</span></span>`;
+  }).join('');
+}
+
+function updKPI() {
+  $('k-s').textContent = stocks.length;
+  $('k-up').textContent = stocks.filter(s => chg(s) > 0).length;
+  $('k-dn').textContent = stocks.filter(s => chg(s) < 0).length;
+  if (usuarios) $('k-u').textContent = usuarios.length;
+}
+
+// ========== SIMULACIÓN ==========
+function toggleSim() {
+  simOn = !simOn;
+  const b = $('btnSim');
+  if (simOn) {
+    b.textContent = '⏹ Detener';
+    b.className = 'btn br btn-sm';
+    simIv = setInterval(simStep, 2500);
+    log('INFO', 'Simulación iniciada');
+  } else {
+    b.textContent = '▶ Iniciar';
+    b.className = 'btn bg btn-sm';
+    clearInterval(simIv);
+    $('sPrg').style.width = '0%';
+    $('sInf').textContent = 'Detenida';
+    log('INFO', 'Simulación detenida');
+  }
+}
+
+function simStep() {
+  simTk = (simTk + 1) % 20;
+  $('sPrg').style.width = `${simTk / 20 * 100}%`;
+  $('sInf').textContent = `Tick #${simTk} · ${new Date().toLocaleTimeString('es-CL')}`;
+  
+  stocks.forEach(s => {
+    const v = (Math.random() - 0.5) * 0.03;
+    s.px = Math.max(Math.round(s.px * (1 + v) * 100) / 100, 0.1);
+    const cd = $(`sc-${s.id}`);
+    if (!cd) return;
+    const c = chg(s);
+    const col = clr(c);
+    const a = arr(c);
+    cd.className = `scard ${c > 0 ? 'up' : c < 0 ? 'dn' : ''}`;
+    cd.classList.add(v > 0 ? 'f-up' : 'f-dn');
+    setTimeout(() => cd.classList.remove('f-up', 'f-dn'), 500);
+    cd.querySelector('.sc-p').style.color = col;
+    cd.querySelector('.sc-p').textContent = `$${fN(s.px)}`;
+    cd.querySelector('.sc-c').style.color = col;
+    cd.querySelector('.sc-c').textContent = `${a} ${Math.abs(c).toFixed(2)}%`;
+    
+    if (!pHist[s.sym]) pHist[s.sym] = [];
+    pHist[s.sym].push({
+      t: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      p: s.px
+    });
+    if (pHist[s.sym].length > 20) pHist[s.sym].shift();
+  });
+  
+  rdTick();
+  updKPI();
+  updCharts();
+  updCarrito();
+  updRanking();
+}
+
+// ========== CHARTS ==========
+const cO = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(15,34,56,.65)' }, ticks: { color: '#507090', font: { size: 9 } } },
+    y: { grid: { color: 'rgba(15,34,56,.65)' }, ticks: { color: '#507090', font: { size: 9 } } }
+  }
+};
+
+function initCharts() {
+  stocks.forEach(s => { pHist[s.sym] = [{ t: 'inicio', p: s.pc }, { t: 'ahora', p: s.px }]; });
+  const sl = $('chSel');
+  sl.innerHTML = stocks.map(s => `<option value="${s.id}">${s.sym}</option>`).join('');
+  pCh = new Chart($('pChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,.07)', borderWidth: 2, pointRadius: 2, tension: 0.4, fill: true }] },
+    options: cO
+  });
+  vCh = new Chart($('vChart'), {
+    type: 'bar',
+    data: {
+      labels: stocks.map(s => s.sym.replace('.SN', '')),
+      datasets: [{ data: stocks.map(s => s.vol), backgroundColor: stocks.map(s => chg(s) >= 0 ? 'rgba(0,255,136,.5)' : 'rgba(255,60,90,.5)'), borderWidth: 0, borderRadius: 3 }]
+    },
+    options: cO
+  });
+  updCharts();
+}
+
+function updCharts() {
+  const id = $('chSel')?.value;
+  const s = stocks.find(x => x.id === id);
+  if (!s) return;
+  const h = pHist[s.sym] || [{ t: '—', p: s.px }];
+  const up = chg(s) >= 0;
+  pCh.data.labels = h.map(x => x.t);
+  pCh.data.datasets[0].data = h.map(x => x.p);
+  pCh.data.datasets[0].borderColor = up ? '#00ff88' : '#ff3c5a';
+  pCh.data.datasets[0].backgroundColor = up ? 'rgba(0,255,136,.07)' : 'rgba(255,60,90,.07)';
+  pCh.update('none');
+  vCh.data.datasets[0].data = stocks.map(x => x.vol);
+  vCh.data.datasets[0].backgroundColor = stocks.map(x => chg(x) >= 0 ? 'rgba(0,255,136,.5)' : 'rgba(255,60,90,.5)');
+  vCh.update('none');
+}
+
+// ========== API SYNC ==========
+async function checkAPI() {
+  try {
+    const r = await fetch(`${API}/api/health`, { headers: { 'ngrok-skip-browser-warning': 'true' }, signal: AbortSignal.timeout(2000) });
+    if (r.ok) { setConn(true); log('OK', 'API NEXO online'); return; }
+  } catch (e) {}
+  setConn(false);
+  log('WARN', 'API no disponible — modo demo');
+}
+
+function setConn(on) {
+  const c = on ? 'cbdg on' : 'cbdg off';
+  const t = on ? 'ONLINE' : 'DEMO';
+  ['cnBdg', 'pgBdg', 'mgBdg'].forEach(id => {
+    if (!$(id)) return;
+    $(id).className = c;
+    $(id).innerHTML = `<span class="cd"></span>${t}`;
+  });
+}
+
+async function checkSyncStatus() {
+  try {
+    const r = await fetch(`${API}/api/stocks/sync/status`, { headers: { 'ngrok-skip-browser-warning': 'true' }, signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.last_sync) {
+        const dt = new Date(d.last_sync + 'Z').toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+        const el = $('lastSyncTxt');
+        if (el) el.textContent = `Actualizado ${dt}`;
+        const sy = $('sys-lastSync');
+        if (sy) sy.textContent = dt;
+      }
+      if (d.next_sync) {
+        const dt = new Date(d.next_sync + 'Z').toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+        const el = $('nextSyncTxt');
+        if (el) el.textContent = `Próxima: ${dt}`;
+        const sy = $('sys-nextSync');
+        if (sy) sy.textContent = dt;
+      }
+      const cd = $('syncCountdown');
+      if (cd && usr && usr.role === 'admin') {
+        if (!d.can_sync_now) {
+          cd.style.display = 'block';
+          cd.textContent = `⏳ ${d.minutes_remaining}m`;
+        } else {
+          cd.style.display = 'none';
+        }
+      }
+      const mb = $('btnManualSync');
+      const sn = $('syncNote');
+      if (mb) {
+        mb.disabled = !d.can_sync_now;
+        if (!d.can_sync_now && sn) {
+          sn.textContent = `⏳ Próxima sincronización disponible en ${d.minutes_remaining} minuto(s)`;
+          sn.classList.remove('hidden');
+        } else if (sn) sn.classList.add('hidden');
+      }
+      return d;
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function autoSyncAPI() {
+  log('INFO', 'Auto-sync iniciado (∼30 min)');
+  const status = await checkSyncStatus();
+  if (status && !status.can_sync_now) {
+    log('WARN', `Auto-sync bloqueado: ${status.minutes_remaining}m restantes`);
+    return;
+  }
+  await syncS();
+}
+
+async function syncS() {
+  const statusData = await checkSyncStatus();
+  if (statusData && !statusData.can_sync_now) {
+    toast(`Espera ${statusData.minutes_remaining} minuto(s) para sincronizar`, 'wrn');
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/api/stocks/sync`, { method: 'POST', headers: { 'ngrok-skip-browser-warning': 'true' }, signal: AbortSignal.timeout(15000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.data && d.data.length) {
+        d.data.forEach(sd => {
+          const idx = stocks.findIndex(s => s.sym === sd.symbol || s.sym === sd.symbol + '.SN');
+          if (idx >= 0) {
+            stocks[idx].px = sd.price;
+            stocks[idx].pc = sd.previous_close;
+            stocks[idx].vol = sd.volume || stocks[idx].vol;
+          }
+        });
+      }
+      rdGrid();
+      rdTick();
+      updCharts();
+      const dt = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      const el = $('lastSyncTxt');
+      if (el) el.textContent = `Actualizado ${dt}`;
+      toast('Datos de mercado actualizados', 'ok');
+      log('OK', `Sync exitoso: ${d.updated || 0} acciones`);
+      await checkSyncStatus();
+      return;
+    }
+    const err = await r.json();
+    toast(err.message || 'Error al sincronizar', 'wrn');
+  } catch (e) {
+    stocks.forEach(s => { s.pc = s.px; s.px = Math.round(s.px * (1 + (Math.random() - 0.5) * 0.04) * 100) / 100; });
+    rdGrid();
+    rdTick();
+    updCharts();
+    const dt = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    const el = $('lastSyncTxt');
+    if (el) el.textContent = `Simulado ${dt}`;
+    toast('Acciones actualizadas (demo)', 'ok');
+    log('WARN', 'Sync demo (API no disponible)');
+  }
+}
+
+// ========== COMPRAR (con backend) ==========
+async function comprar(sid) {
+  if (isG) { toast('Invitado no puede comprar', 'wrn'); return; }
+  if (_pendingTrade) { toast('Espera a que se complete la operación anterior', 'wrn'); return; }
+  const qEl = $(`qty-${sid}`);
+  const q = qEl ? parseInt(qEl.value) || 1 : 1;
+  if (q <= 0) { toast('Cantidad inválida', 'err'); return; }
+
+  const s = stocks.find(x => x.id === sid);
+  const cost = s.px * q;
+  if (cost > userBalance) { toast(`Saldo insuficiente: $${fN(userBalance)}`, 'err'); return; }
+
+  _pendingTrade = true;
+  const btn = $(`buy-btn-${sid}`);
+  if (btn) btn.disabled = true;
+
+  try {
+    const r = await fetch(`${API}/api/postgres/transaccion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({
+        user_id: usr.id,
+        symbol: s.sym,
+        transaction_type: 'buy',
+        quantity: q,
+        price: s.px
+      }),
+      signal: AbortSignal.timeout(8000)
+    });
+
+    if (r.ok) {
+      const data = await r.json();
+      userBalance = data.new_balance;
+      await loadUserData();
+      if (qEl) qEl.value = 1;
+      toast(`Comprado ${q}× ${s.sym}`, 'ok');
+      log('INFO', `${usr.username} compró ${q}× ${s.sym}`);
+      updCarrito();
+      updRanking();
+      openDrawer();
+    } else {
+      const err = await r.json();
+      toast(err.error || 'Error en la compra', 'err');
+    }
+  } catch (e) {
+    toast('Error de conexión o timeout', 'err');
+  } finally {
+    _pendingTrade = false;
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function vender(sid, qty) {
+  if (isG) return;
+  if (_pendingTrade) { toast('Espera a que se complete la operación anterior', 'wrn'); return; }
+  const q = qty || 1;
+
+  // Precio actual del array local (el backend usa MongoDB si está disponible)
+  const s = stocks.find(st => st.sym === sid);
+  const price = s ? s.px : null;
+
+  _pendingTrade = true;
+
+  try {
+    const r = await fetch(`${API}/api/postgres/transaccion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({
+        user_id: usr.id,
+        symbol: sid,
+        transaction_type: 'sell',
+        quantity: q,
+        price: price
+      }),
+      signal: AbortSignal.timeout(8000)
+    });
+
+    if (r.ok) {
+      const data = await r.json();
+      userBalance = data.new_balance;
+      await loadUserData();
+      toast(`Vendido ${q}× ${sid}`, 'ok');
+      log('INFO', `${usr.username} vendió ${q}× ${sid}`);
+      updCarrito();
+      updRanking();
+    } else {
+      const err = await r.json();
+      toast(err.error || 'Error en la venta', 'err');
+    }
+  } catch (e) {
+    toast('Error de conexión o timeout', 'err');
+  } finally {
+    _pendingTrade = false;
+  }
+}
+
+// ========== PORTAFOLIO ==========
+function updCarrito() {
+  const sEl = $('c-saldo');
+  if (sEl) sEl.textContent = '$' + fN(userBalance);
+  
+  const dsEl = $('drawer-saldo');
+  if (dsEl) dsEl.textContent = '$' + fN(userBalance);
+  
+  const tb = $('cartTbl');
+  if (tb) {
+    if (!userPositions || userPositions.length === 0) {
+      tb.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="ei">💼</div>Tu portafolio está vacío</div></td></tr>`;
+    } else {
+      let totalPort = 0;
+      tb.innerHTML = userPositions.map(pos => {
+        const s = stocks.find(st => st.sym === pos.symbol) || { px: 0, sym: pos.symbol };
+        const currentValue = pos.quantity * s.px;
+        const invested = pos.quantity * pos.average_price;
+        const pl = currentValue - invested;
+        const plp = invested > 0 ? (pl / invested) * 100 : 0;
+        totalPort += currentValue;
+        return `<tr>
+          <td class="cc">${pos.symbol}</td>
+          <td>${pos.quantity}</td>
+          <td>$${fN(pos.average_price)}</td>
+          <td>$${fN(s.px)}</td>
+          <td style="color:${clr(pl)}">${pl >= 0 ? '+' : ''}$${fN(pl)} (${plp.toFixed(2)}%)</td>
+          <td>
+            <div style="display:flex;gap:4px;align-items:center">
+              <input class="cart-qty-inp" id="sell-qty-${pos.symbol}" type="number" value="1" min="1" max="${pos.quantity}">
+              <button class="btn br btn-xs" onclick="vender('${pos.symbol}', parseInt($('sell-qty-${pos.symbol}').value) || 1)">Vender</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+  }
+  
+  const di = $('drawerItems');
+  if (di) {
+    if (!userPositions || userPositions.length === 0) {
+      di.innerHTML = '<div class="empty"><div class="ei">💼</div>Sin posiciones abiertas</div>';
+    } else {
+      let totalPort = 0;
+      di.innerHTML = userPositions.map(pos => {
+        const s = stocks.find(st => st.sym === pos.symbol) || { px: 0, nm: '', sym: pos.symbol };
+        const currentValue = pos.quantity * s.px;
+        const invested = pos.quantity * pos.average_price;
+        const pl = currentValue - invested;
+        const plp = invested > 0 ? (pl / invested) * 100 : 0;
+        totalPort += currentValue;
+        return `<div class="cart-item">
+          <div class="cart-item-top">
+            <div><div class="cart-sym">${pos.symbol}</div><div class="cart-nm">${s.nm || ''}</div></div>
+            <div class="cart-pl" style="color:${clr(pl)}">${pl >= 0 ? '+' : ''}${plp.toFixed(2)}%</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:.75rem;color:var(--sub)">${pos.quantity} acc. · Compra $${fN(pos.average_price)} · Actual $${fN(s.px)}</div>
+          <div class="cart-row">
+            <input class="cart-qty-inp" id="dqty-${pos.symbol}" type="number" value="1" min="1" max="${pos.quantity}">
+            <button class="btn br btn-xs" style="flex:1" onclick="vender('${pos.symbol}', parseInt($('dqty-${pos.symbol}').value) || 1)">▼ Vender</button>
+          </div>
+        </div>`;
+      }).join('');
+      const dpv = $('drawer-portVal');
+      if (dpv) dpv.textContent = '$' + fN(totalPort);
+      const totalPL = totalPort - userPositions.reduce((a, p) => a + p.quantity * p.average_price, 0);
+      const dpl = $('drawer-pl');
+      if (dpl) {
+        dpl.textContent = (totalPL >= 0 ? '+' : '') + '$' + fN(totalPL);
+        dpl.style.color = clr(totalPL);
+      }
+    }
+  }
+  
+  const badge = $('fcartBadge');
+  const btn = $('fcartBtn');
+  const total = userPositions.reduce((a, p) => a + p.quantity, 0);
+  if (badge) {
+    badge.textContent = total;
+    badge.classList.toggle('vis', total > 0);
+  }
+  if (btn && !isG) btn.classList.remove('hidden');
+  else if (btn) btn.classList.add('hidden');
+}
+
+function openDrawer() {
+  $('cartDrawer').classList.add('open');
+  $('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  $('cartDrawer').classList.remove('open');
+  $('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function updRanking() {
+  const tb = $('rankTbl');
+  if (!tb) return;
+  
+  try {
+    const r = await fetch(`${API}/api/postgres/ranking`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (r.ok) {
+      const data = await r.json();
+      const players = data.data || [];
+      tb.innerHTML = players.map((p, i) => {
+        const pl = p.pnl || 0;
+        const plp = p.pnl_percent || 0;
+        const bg = p.is_me ? 'background:rgba(0,212,255,.08);' : '';
+        const nm = p.is_me ? `<strong>${escHtml(p.username)} (Tú)</strong>` : escHtml(p.username);
+        return `<tr style="${bg}">
+          <td>${i === 0 ? '🏆' : i + 1}</td>
+          <td class="cc">${nm}</td>
+          <td>$${fN(p.portfolio_value || 0)}</td>
+          <td>$${fN(p.balance || 0)}</td>
+          <td style="font-weight:bold">$${fN((p.portfolio_value || 0) + (p.balance || 0))}</td>
+          <td style="color:${clr(pl)}">${pl >= 0 ? '+' : ''}${plp.toFixed(2)}%</td>
+        </tr>`;
+      }).join('');
+    }
+  } catch (e) {
+    console.warn('Error loading ranking:', e);
+  }
+}
+
+// ========== POSTGRESQL (usuarios) ==========
+async function pgLoad() {
+  try {
+    const r = await fetch(`${API}/api/postgres/usuarios`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (r.ok) {
+      const data = await r.json();
+      usuarios = data.data || [];
+      pgRnd(usuarios);
+      pgSts();
+    }
+  } catch (e) {
+    console.warn('Error loading users:', e);
+  }
+}
+
+function pgRnd(list) {
+  const tb = $('pgTbl');
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="ei">👥</div>Sin usuarios</div></td></tr>`;
+    return;
+  }
+  const d = isG ? 'disabled' : '';
+  tb.innerHTML = list.map(u => {
+    const rb = u.role === 'admin' ? `<span class="cc" style="font-size:.7rem">🔑 admin</span>` : `<span class="cg" style="font-size:.7rem">👤 user</span>`;
+    return `<tr>
+      <td class="cc" style="max-width:90px;overflow:hidden;text-overflow:ellipsis">${escHtml(u.username)}</td>
+      <td style="max-width:110px;overflow:hidden;text-overflow:ellipsis">${escHtml(u.full_name)}</td>
+      <td>$${fN(u.balance || 0)}</td>
+      <td>${rb}</td>
+      <td><div class="tact">
+        <button class="btn bc btn-xs" ${d} onclick="pgEd(${u.id})">✎</button>
+        <button class="btn br btn-xs" ${d} onclick="pgDl(${u.id})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function pgFlt() {
+  const q = $('pg-srch').value.toLowerCase();
+  pgRnd(usuarios.filter(u => u.username.toLowerCase().includes(q) || u.full_name.toLowerCase().includes(q)));
+}
+
+function pgSts() {
+  $('pg-t').textContent = usuarios.length;
+  $('pg-a').textContent = usuarios.filter(u => u.role === 'admin').length;
+  $('pg-s').textContent = usuarios.filter(u => u.role === 'user').length;
+  $('k-u').textContent = usuarios.length;
+}
+
+async function pgAdd() {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  const u = $('pg-u').value.trim();
+  const e = $('pg-e').value.trim();
+  const n = $('pg-n').value.trim();
+  const b = parseFloat($('pg-balance').value) || 0;
+  const p = $('pg-p').value;
+  
+  if (!u || !e || !n || !p) { toast('Completa todos los campos', 'wrn'); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { toast('Email inválido', 'err'); return; }
+  
+  try {
+    const r = await fetch(`${API}/api/postgres/usuarios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ username: u, email: e, full_name: n, balance: b, password: p, role: sRole })
+    });
+    if (r.ok) {
+      toast(`Usuario "${u}" creado`, 'ok');
+      log('OK', `INSERT usuario → ${u}`);
+      pgLoad();
+      pgClr();
+    } else {
+      const err = await r.json();
+      toast(err.error || 'Error al crear usuario', 'err');
+    }
+  } catch (e) {
+    toast('Error de conexión', 'err');
+  }
+}
+
+function pgEd(id) {
+  const u = usuarios.find(x => x.id === id);
+  if (!u) return;
+  $('pg-u').value = u.username;
+  $('pg-e').value = u.email;
+  $('pg-n').value = u.full_name;
+  $('pg-balance').value = u.balance || 0;
+  $('pg-p').value = '';
+  setRole(u.role);
+  eUID = id;
+  $('pg-nt').textContent = `✎ Editando: ${u.username} · ID ${id}`;
+  $('pg-nt').classList.remove('hidden');
+  toast(`Editando "${u.username}"`);
+}
+
+async function pgSave() {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  if (!eUID) { toast('Selecciona un usuario', 'wrn'); return; }
+  const u = $('pg-u').value.trim();
+  const e = $('pg-e').value.trim();
+  const n = $('pg-n').value.trim();
+  const b = parseFloat($('pg-balance').value) || 0;
+  
+  if (!u || !e || !n) { toast('Completa los campos requeridos', 'wrn'); return; }
+  
+  try {
+    const r = await fetch(`${API}/api/postgres/usuarios/${eUID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ username: u, email: e, full_name: n, balance: b, role: sRole })
+    });
+    if (r.ok) {
+      toast('Usuario actualizado', 'ok');
+      log('OK', `UPDATE usuario → id=${eUID}`);
+      pgLoad();
+      pgClr();
+    } else {
+      const err = await r.json();
+      toast(err.error || 'Error al actualizar', 'err');
+    }
+  } catch (e) {
+    toast('Error de conexión', 'err');
+  }
+}
+
+async function pgDl(id) {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  const u = usuarios.find(x => x.id === id);
+  if (!u) return;
+  if (u.username === 'admin') { toast('No se puede eliminar al admin principal', 'err'); return; }
+  
+  $('delTxt').textContent = `¿Eliminar a "${u.username}" (${u.full_name})?`;
+  $('delOk').onclick = async () => {
+    try {
+      const r = await fetch(`${API}/api/postgres/usuarios/${id}`, { method: 'DELETE', headers: { 'ngrok-skip-browser-warning': 'true' } });
+      if (r.ok) {
+        toast('Eliminado', 'ok');
+        log('OK', `DELETE usuario → id=${id}`);
+        pgLoad();
+        updKPI();
+      } else {
+        toast('Error al eliminar', 'err');
+      }
+    } catch (e) {
+      toast('Error de conexión', 'err');
+    }
+    closeMdl();
+  };
+  $('delMdl').classList.remove('hidden');
+}
+
+function pgClr() {
+  ['pg-u', 'pg-e', 'pg-n', 'pg-balance', 'pg-p'].forEach(i => $(i).value = '');
+  setRole('user');
+  eUID = null;
+  $('pg-nt').classList.add('hidden');
+}
+
+function setRole(r) {
+  sRole = r;
+  $('rp-u').className = 'rpill' + (r === 'user' ? ' rp-u' : '');
+  $('rp-a').className = 'rpill' + (r === 'admin' ? ' rp-a' : '');
+}
+
+// ========== MONGODB (acciones) ==========
+function mgLoad() { mgRnd(stocks); }
+
+function mgRnd(list) {
+  const tb = $('mgTbl');
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="4"><div class="empty"><div class="ei">📈</div>Sin acciones</div></td></tr>`;
+    return;
+  }
+  const d = isG ? 'disabled' : '';
+  tb.innerHTML = list.map(s => {
+    const c = chg(s);
+    const col = clr(c);
+    const a = arr(c);
+    return `<tr onclick="mgPv('${s.id}')" style="cursor:pointer">
+      <td class="cc">${s.sym}</td>
+      <td>$${fN(s.px)}</td>
+      <td style="color:${col}">${a}${Math.abs(c).toFixed(2)}%</td>
+      <td><div class="tact">
+        <button class="btn bc btn-xs" ${d} onclick="event.stopPropagation();mgEd('${s.id}')">✎</button>
+        <button class="btn br btn-xs" ${d} onclick="event.stopPropagation();mgDl('${s.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function mgFlt() {
+  const q = $('mg-srch').value.toLowerCase();
+  mgRnd(stocks.filter(s => s.sym.toLowerCase().includes(q) || s.nm.toLowerCase().includes(q)));
+}
+
+function mgPv(id) {
+  const s = stocks.find(x => x.id === id);
+  if (!s) return;
+  $('mgDoc').textContent = JSON.stringify({
+    _id: `ObjectId("${id}abc")`,
+    symbol: s.sym,
+    name: s.nm,
+    price: s.px,
+    previous_close: s.pc,
+    change: parseFloat((s.px - s.pc).toFixed(2)),
+    change_percent: parseFloat(chg(s).toFixed(2)),
+    volume: s.vol,
+    currency: 'CLP',
+    exchange: 'SNGO',
+    market_state: 'REGULAR',
+    updated_at: new Date().toISOString()
+  }, null, 2);
+}
+
+function mgAddS() {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  const sym = $('mg-s').value.trim().toUpperCase();
+  const nm = $('mg-n').value.trim();
+  const px = parseFloat($('mg-p').value);
+  const pc = parseFloat($('mg-v').value) || px;
+  const vol = parseInt($('mg-vol').value) || 0;
+  
+  if (!sym || !nm || isNaN(px)) { toast('Completa símbolo, empresa y precio', 'wrn'); return; }
+  if (stocks.find(s => s.sym === sym)) { toast('Símbolo ya existe', 'err'); return; }
+  
+  stocks.push({ id: `s${Date.now()}`, sym, nm, px, pc, vol });
+  pHist[sym] = [{ t: 'inicio', p: pc }, { t: 'ahora', p: px }];
+  mgLoad();
+  rdGrid();
+  rdTick();
+  fillAISel();
+  $('chSel').innerHTML = stocks.map(s => `<option value="${s.id}">${s.sym}</option>`).join('');
+  updCharts();
+  mgClr();
+  updKPI();
+  toast(`"${sym}" agregada`, 'ok');
+  log('OK', `INSERT stock_quotes → ${sym}`);
+}
+
+function mgEd(id) {
+  const s = stocks.find(x => x.id === id);
+  if (!s) return;
+  $('mg-s').value = s.sym;
+  $('mg-n').value = s.nm;
+  $('mg-p').value = s.px;
+  $('mg-v').value = s.pc;
+  $('mg-vol').value = s.vol;
+  eSID = id;
+  $('mg-nt').textContent = `✎ Editando: ${s.sym}`;
+  $('mg-nt').classList.remove('hidden');
+  mgPv(id);
+  toast(`Editando ${s.sym}`);
+}
+
+function mgSave() {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  if (!eSID) { toast('Selecciona una acción', 'wrn'); return; }
+  const idx = stocks.findIndex(s => s.id === eSID);
+  if (idx < 0) return;
+  const px = parseFloat($('mg-p').value);
+  const pc = parseFloat($('mg-v').value) || px;
+  if (isNaN(px)) { toast('Precio inválido', 'err'); return; }
+  stocks[idx] = { ...stocks[idx], nm: $('mg-n').value.trim(), px, pc, vol: parseInt($('mg-vol').value) || 0 };
+  mgLoad();
+  rdGrid();
+  rdTick();
+  updCharts();
+  mgClr();
+  toast('Acción actualizada', 'ok');
+  log('OK', `UPDATE stock_quotes → id=${eSID}`);
+}
+
+function mgDl(id) {
+  if (isG) { toast('Requiere inicio de sesión', 'wrn'); return; }
+  const s = stocks.find(x => x.id === id);
+  if (!s) return;
+  $('delTxt').textContent = `¿Eliminar "${s.sym}" (${s.nm})?`;
+  $('delOk').onclick = () => {
+    stocks = stocks.filter(x => x.id !== id);
+    mgLoad();
+    rdGrid();
+    rdTick();
+    updCharts();
+    updKPI();
+    fillAISel();
+    closeMdl();
+    toast('Eliminada', 'ok');
+    log('OK', `DELETE stock_quotes → id=${id}`);
+  };
+  $('delMdl').classList.remove('hidden');
+}
+
+function mgClr() {
+  ['mg-s', 'mg-n', 'mg-p', 'mg-v', 'mg-vol'].forEach(i => $(i).value = '');
+  eSID = null;
+  $('mg-nt').classList.add('hidden');
+}
+
+// ========== AI ==========
+function fillAISel() {
+  const sl = $('ai-sel');
+  sl.innerHTML = stocks.map(s => `<option value="${s.id}">${s.sym} — ${s.nm}</option>`).join('');
+  sl.onchange = aiInd;
+  aiInd();
+}
+
+function aiInd() {
+  const s = stocks.find(x => x.id === $('ai-sel').value);
+  if (!s) return;
+  const c = chg(s);
+  const col = clr(c);
+  const a = arr(c);
+  $('ai-ind').innerHTML = `
+    <div><span class="cs">Símbolo:   </span><span class="cc">${s.sym}</span></div>
+    <div><span class="cs">Empresa:   </span>${s.nm}</div>
+    <div><span class="cs">Precio:    </span><span style="color:${col}">$${fN(s.px)} CLP</span></div>
+    <div><span class="cs">Cierre ant:</span> $${fN(s.pc)} CLP</div>
+    <div><span class="cs">Variación: </span><span style="color:${col}">${c >= 0 ? '+' : ''}${c.toFixed(2)}%</span></div>
+    <div><span class="cs">Volumen:   </span>${fV(s.vol)}</div>`;
+}
+
+function aiFrom(id) {
+  go('ai');
+  $('ai-sel').value = id;
+  aiInd();
+  toast('Acción cargada en Asesor IA');
+}
+
+function runAI() {
+  const s = stocks.find(x => x.id === $('ai-sel').value);
+  const cap = parseFloat($('ai-cap').value) || 1000000;
+  const rf = parseFloat($('ai-rsk').value) || 1;
+  if (!s) { toast('Selecciona una acción', 'wrn'); return; }
+  const c = chg(s);
+  let sig, cls, txt;
+  
+  if (c <= -1.5 * rf) {
+    sig = '🟢 COMPRA RECOMENDADA';
+    cls = 's-b';
+    txt = `${s.sym} registra una caída de ${c.toFixed(2)}% respecto al cierre anterior ($${fN(s.pc)} CLP).\n\n▶ ANÁLISIS: El retroceso abre una ventana de entrada atractiva para el perfil seleccionado.\n\n▶ SUGERENCIA: Con $${cap.toLocaleString('es-CL')} CLP disponibles, considera adquirir ${Math.floor(cap * 0.3 / s.px)} acciones (30% del capital) a $${fN(s.px)} CLP.\n\n▶ STOP-LOSS sugerido: $${fN(s.px * 0.95)} CLP\n▶ OBJETIVO de precio: $${fN(s.pc)} CLP (recuperación)\n\n⚠ Análisis orientativo. Consulta con un asesor financiero certificado.`;
+  } else if (c >= 2.0 * rf) {
+    sig = '🔴 VENTA SUGERIDA';
+    cls = 's-s';
+    txt = `${s.sym} exhibe una suba de +${c.toFixed(2)}% sobre el cierre ($${fN(s.pc)} CLP).\n\n▶ ANÁLISIS: El precio puede estar en zona de sobrecompra. Es posible una corrección próxima.\n\n▶ SUGERENCIA: Si tienes posiciones abiertas, considera tomar ganancias parciales en la zona $${fN(s.px * 0.98)}—$${fN(s.px)} CLP.\n\n▶ SOPORTE siguiente: $${fN(s.pc)} CLP\n\n⚠ Análisis orientativo. Consulta con un asesor financiero certificado.`;
+  } else {
+    sig = '🔵 MANTENER';
+    cls = 's-h';
+    txt = `${s.sym} se mantiene en zona de estabilidad (${c >= 0 ? '+' : ''}${c.toFixed(2)}%).\n\n▶ ANÁLISIS: No existe señal clara de entrada ni salida para el perfil seleccionado.\n\n▶ NIVELES CLAVE:\n   • Resistencia: $${fN(s.px * 1.03)} CLP\n   • Soporte:     $${fN(s.px * 0.97)} CLP\n   • Cierre ant:  $${fN(s.pc)} CLP\n\n▶ ACCIÓN: Mantener posiciones y observar próximos cierres.\n\n⚠ Análisis orientativo. Consulta con un asesor financiero certificado.`;
+  }
+  
+  $('ai-bdg').innerHTML = `<span class="sig ${cls}">${sig}</span>`;
+  typewr($('ai-out'), txt);
+  log('OK', `IA → ${s.sym}: ${sig}`);
+}
+
+function typewr(el, txt) {
+  el.textContent = '';
+  el.classList.add('cursor');
+  let i = 0;
+  const t = () => {
+    if (i < txt.length) {
+      el.textContent += txt[i++];
+      el.scrollTop = el.scrollHeight;
+      setTimeout(t, txt[i - 1] === '\n' ? 22 : 9);
+    } else {
+      el.classList.remove('cursor');
+    }
+  };
+  setTimeout(t, 120);
+}
+
+function runAllAI() {
+  const rf = parseFloat($('ai-rsk').value) || 1;
+  const rows = stocks.map(s => {
+    const c = chg(s);
+    let sig, cls, sc = 0;
+    if (c <= -1.5 * rf) { sig = '🟢 COMPRA'; cls = 's-b'; sc = Math.abs(c); }
+    else if (c >= 2 * rf) { sig = '🔴 VENTA'; cls = 's-s'; sc = c; }
+    else { sig = '🔵 MANTENER'; cls = 's-h'; }
+    return { ...s, c, sig, cls, sc };
+  }).sort((a, b) => b.sc - a.sc);
+  
+  $('ai-rnk').innerHTML = `<div class="tw"><table class="dt">
+    <thead><tr><th>Símbolo</th><th>Empresa</th><th>Precio</th><th>Δ%</th><th>Señal</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td class="cc">${r.sym}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis">${r.nm}</td>
+      <td>$${fN(r.px)}</td>
+      <td style="color:${clr(r.c)}">${r.c >= 0 ? '+' : ''}${r.c.toFixed(2)}%</td>
+      <td><span class="sig ${r.cls}" style="font-size:.7rem;padding:3px 10px">${r.sig}</span></td>
+    </table>`).join('')}</tbody></table></div>`;
+  toast('Ranking generado', 'ok');
+  log('OK', `Ranking IA → ${stocks.length} acciones`);
+}
+
+// ========== MODAL ==========
+function closeMdl() { $('delMdl').classList.add('hidden'); }
+$('delMdl').addEventListener('click', e => { if (e.target === $('delMdl')) closeMdl(); });
+
+// ========== LOG ==========
+function log(l, m) {
+  const el = $('sLog');
+  if (!el) return;
+  const ts = new Date().toLocaleTimeString('es-CL');
+  const c = { OK: 'var(--green)', INFO: 'var(--cyan)', WARN: 'var(--amber)', ERR: 'var(--red)' }[l] || 'var(--txt)';
+  const d = document.createElement('div');
+  d.innerHTML = `<span class="cs">[${ts}]</span> <span style="color:${c}">[${l}]</span> ${m}`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clrLog() { $('sLog').innerHTML = ''; toast('Log limpiado'); }
+
+// ========== TOAST ==========
+function toast(msg, type = '') {
+  const c = $('toasts');
+  const el = document.createElement('div');
+  const ico = { ok: '✓', err: '✕', wrn: '⚠', '': 'ℹ' }[type] || 'ℹ';
+  el.className = `toast ${type}`;
+  el.textContent = `${ico} ${msg}`;
+  c.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'tOut .28s ease forwards';
+    setTimeout(() => el.remove(), 280);
+  }, 3000);
+}
+
+function showErr(el, msg) {
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+$('l-p').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('l-u').addEventListener('keydown', e => { if (e.key === 'Enter') $('l-p').focus(); });
+</script>
+</body>
+</html>

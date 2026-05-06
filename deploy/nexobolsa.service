@@ -1,0 +1,43 @@
+[Unit]
+Description=NEXO BOLSA — Plataforma Financiera INACAP
+After=network.target postgresql.service mongod.service
+Wants=postgresql.service mongod.service
+
+[Service]
+Type=notify
+User=nexobolsa
+Group=nexobolsa
+WorkingDirectory=/opt/nexobolsa/backend
+
+# Variables de entorno (reemplaza los valores antes de usar)
+Environment="FLASK_ENV=production"
+Environment="DEBUG=False"
+Environment="FLASK_SECRET_KEY=CAMBIA_ESTA_CLAVE_ALEATORIA_LARGA"
+Environment="POSTGRES_HOST=localhost"
+Environment="POSTGRES_PORT=5432"
+Environment="POSTGRES_DB=comerciotech"
+Environment="POSTGRES_USER=nexobolsa_db"
+Environment="POSTGRES_PASSWORD=CAMBIA_ESTA_PASSWORD"
+Environment="MONGODB_URI=mongodb://localhost:27017/"
+Environment="MONGODB_DB=comerciotech"
+Environment="BOLSA_API_KEY=TU_API_KEY_AQUI"
+Environment="LOG_DIR=/var/log/nexobolsa"
+Environment="INITIAL_BALANCE=10000000"
+
+ExecStart=/opt/nexobolsa/venv/bin/gunicorn \
+    --config /opt/nexobolsa/gunicorn.conf.py \
+    app:app
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+
+Restart=on-failure
+RestartSec=5
+
+# Seguridad básica
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
